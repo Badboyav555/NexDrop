@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexDrop — Exclusive Downloads</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050509;
+  --glass:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --bord2:rgba(255,255,255,0.14);
+  --text:#e4e4f0;
+  --muted:#6a6a88;
+  --cyan:#00f5ff;
+  --pink:#ff2d78;
+  --green:#00ff88;
+  --yellow:#ffe44d;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.025) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;animation:gs 25s linear infinite;}
+@keyframes gs{from{background-position:0 0;}to{background-position:60px 60px;}}
+
+/* orbs */
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.o1{width:480px;height:480px;background:rgba(0,245,255,0.06);top:-100px;left:-100px;}
+.o2{width:400px;height:400px;background:rgba(255,45,120,0.06);bottom:-60px;right:-60px;}
+.o3{width:280px;height:280px;background:rgba(0,255,136,0.04);top:50%;left:50%;transform:translate(-50%,-50%);}
+
+/* HEADER */
+header{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 2.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,9,0.8);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-.5px;}
+.logo em{font-style:normal;color:var(--cyan);text-shadow:0 0 20px rgba(0,245,255,0.5);}
+nav a{color:var(--muted);text-decoration:none;font-size:.82rem;margin-left:2rem;transition:color .2s;}
+nav a:hover{color:var(--cyan);}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:130px 2.5rem 60px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:'Syne Mono',monospace;font-size:.68rem;color:var(--cyan);letter-spacing:4px;text-transform:uppercase;margin-bottom:1.4rem;opacity:0;animation:rise .7s .1s ease forwards;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(3rem,8vw,7rem);line-height:.93;letter-spacing:-3px;opacity:0;animation:rise .7s .2s ease forwards;}
+.hero h1 .l2{display:block;-webkit-text-stroke:1px rgba(255,255,255,0.22);color:transparent;}
+.hero h1 .l3{display:block;color:var(--cyan);text-shadow:0 0 50px rgba(0,245,255,0.4);}
+.hero-sub{margin-top:1.8rem;max-width:440px;color:var(--muted);font-size:.95rem;line-height:1.75;opacity:0;animation:rise .7s .3s ease forwards;}
+@keyframes rise{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── GATE CARD ─── */
+.gate-wrap{position:relative;z-index:1;max-width:520px;margin:0 auto 90px;padding:0 1.5rem;opacity:0;animation:rise .7s .4s ease forwards;}
+
+.gate-card{
+  background:var(--glass);
+  backdrop-filter:blur(32px);
+  border:1px solid var(--bord2);
+  border-radius:22px;
+  padding:2.8rem 2.5rem;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 0 0 1px var(--border),0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* corner brackets */
+.gate-card::before,.gate-card::after{content:'';position:absolute;width:52px;height:52px;border-color:rgba(0,245,255,.35);border-style:solid;}
+.gate-card::before{top:14px;left:14px;border-width:2px 0 0 2px;border-radius:3px 0 0 0;}
+.gate-card::after{bottom:14px;right:14px;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
+
+/* top row */
+.gate-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.gbadge{display:flex;align-items:center;gap:8px;font-family:'Syne Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 7px var(--cyan);animation:blink 1.6s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* step bar */
+.sbar{display:flex;gap:5px;}
+.sb{height:3px;width:34px;border-radius:2px;background:var(--border);transition:all .4s;}
+.sb.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+.sb.done{background:var(--green);}
+
+/* panel titles */
+.ptitle{font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;letter-spacing:-.4px;margin-bottom:.5rem;}
+.pdesc{font-size:.87rem;color:var(--muted);line-height:1.65;margin-bottom:2rem;}
+
+/* ── code input ── */
+.cinput{
+  width:100%;
+  background:rgba(0,0,0,.45);
+  border:1px solid var(--bord2);
+  border-radius:12px;
+  outline:none;
+  padding:16px 20px;
+  color:var(--text);
+  font-family:'Syne Mono',monospace;
+  font-size:1.05rem;
+  letter-spacing:4px;
+  caret-color:var(--cyan);
+  transition:border-color .3s,box-shadow .3s;
+  margin-bottom:14px;
+  display:block;
+}
+.cinput::placeholder{color:var(--muted);font-size:.78rem;letter-spacing:2px;}
+.cinput:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,.09);}
+
+.errmsg{display:none;font-family:'Syne Mono',monospace;font-size:.7rem;color:var(--pink);letter-spacing:1px;margin-bottom:14px;}
+
+/* ── THE BIG BUTTON ── */
+.bigbtn{
+  display:block;
+  width:100%;
+  padding:18px 24px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  font-family:'Syne',sans-serif;
+  font-weight:700;
+  font-size:1rem;
+  letter-spacing:1.5px;
+  text-align:center;
+  text-decoration:none;
+  transition:all .3s;
+  position:relative;
+  overflow:hidden;
+}
+
+/* variant: cyan (submit) */
+.bigbtn.v-submit{background:var(--cyan);color:#050509;}
+.bigbtn.v-submit:hover{background:#fff;box-shadow:0 10px 40px rgba(0,245,255,.3);transform:translateY(-2px);}
+
+/* variant: pink outline (download) */
+.bigbtn.v-dl{
+  background:transparent;
+  color:var(--pink);
+  border:1.5px solid var(--pink);
+}
+.bigbtn.v-dl::after{content:'';position:absolute;inset:0;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform .35s ease;z-index:0;}
+.bigbtn.v-dl:hover::after{transform:scaleX(1);}
+.bigbtn.v-dl:hover{color:#fff;box-shadow:0 10px 40px rgba(255,45,120,.28);transform:translateY(-2px);}
+.bigbtn.v-dl span{position:relative;z-index:1;}
+
+/* variant: green (final) */
+.bigbtn.v-final{background:linear-gradient(135deg,var(--green),#00c06a);color:#050509;}
+.bigbtn.v-final:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,255,136,.3);}
+
+/* panels */
+.panel{display:none;}
+
+/* verified pill */
+.vpill{display:inline-flex;align-items:center;gap:7px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:100px;padding:5px 13px;font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--green);letter-spacing:1.5px;margin-bottom:1.4rem;}
+
+/* ─── DIVIDER ─── */
+.divider{position:relative;z-index:1;max-width:1100px;margin:0 auto 3rem;padding:0 2.5rem;display:flex;align-items:center;gap:1.5rem;}
+.dline{flex:1;height:1px;background:var(--border);}
+.dtxt{font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:3px;white-space:nowrap;}
+
+/* ─── BLOG ─── */
+.blog{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 2.5rem 90px;}
+.bhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2.5rem;}
+.btitle{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-1px;}
+.ball{font-family:'Syne Mono',monospace;font-size:.7rem;color:var(--cyan);text-decoration:none;letter-spacing:1px;}
+.ball:hover{text-shadow:0 0 10px var(--cyan);}
+
+.pgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;grid-template-rows:auto auto;gap:14px;}
+.pc{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:2rem;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.pc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,245,255,.03),transparent);opacity:0;transition:opacity .3s;}
+.pc:hover{border-color:var(--bord2);transform:translateY(-3px);box-shadow:0 20px 55px rgba(0,0,0,.4);}
+.pc:hover::before{opacity:1;}
+.pc.feat{grid-row:span 2;display:flex;flex-direction:column;justify-content:flex-end;min-height:370px;}
+.feat .fnum{font-family:'Syne',sans-serif;font-weight:800;font-size:5.5rem;color:rgba(0,245,255,.06);position:absolute;top:.8rem;right:1.2rem;line-height:1;user-select:none;}
+
+.ctag{display:inline-block;font-family:'Syne Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border-radius:100px;margin-bottom:.9rem;}
+.tc{background:rgba(0,245,255,.09);color:var(--cyan);border:1px solid rgba(0,245,255,.18);}
+.tp{background:rgba(255,45,120,.09);color:var(--pink);border:1px solid rgba(255,45,120,.18);}
+.tg{background:rgba(0,255,136,.09);color:var(--green);border:1px solid rgba(0,255,136,.18);}
+.ty{background:rgba(255,228,77,.09);color:var(--yellow);border:1px solid rgba(255,228,77,.18);}
+
+.ct{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;line-height:1.22;letter-spacing:-.3px;margin-bottom:.75rem;}
+.feat .ct{font-size:1.45rem;}
+.ce{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:1.2rem;}
+.cf{display:flex;align-items:center;justify-content:space-between;}
+.cd{font-family:'Syne Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:1px;}
+.ca{width:28px;height:28px;border-radius:50%;border:1px solid var(--bord2);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:var(--muted);transition:all .2s;}
+.pc:hover .ca{border-color:var(--cyan);color:var(--cyan);transform:translateX(2px);}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2rem 2.5rem;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;}
+.fcopy{font-size:.78rem;color:var(--muted);}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);z-index:300;display:none;align-items:center;justify-content:center;padding:2rem;}
+.ov.open{display:flex;}
+.modal{background:#0d0d16;border:1px solid var(--bord2);border-radius:20px;max-width:680px;width:100%;max-height:80vh;overflow-y:auto;padding:3rem;position:relative;animation:rise .3s ease;box-shadow:0 40px 100px rgba(0,0,0,.7);}
+.mx{position:absolute;top:1.4rem;right:1.4rem;background:var(--glass);border:1px solid var(--border);width:34px;height:34px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.mx:hover{border-color:var(--pink);color:var(--pink);}
+.modal h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.5px;margin-bottom:.4rem;}
+.mmeta{font-family:'Syne Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:1.5px;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border);}
+.modal p{line-height:1.8;color:#9090b0;margin-bottom:1.2rem;font-size:.93rem;}
+.modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin:2rem 0 .7rem;color:var(--cyan);}
+.modal code{font-family:'Syne Mono',monospace;background:rgba(0,245,255,.08);padding:2px 7px;border-radius:4px;color:var(--cyan);font-size:.83rem;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:3px;}
+
+@media(max-width:768px){
+  .pgrid{grid-template-columns:1fr;}
+  .pc.feat{grid-row:span 1;min-height:260px;}
+  nav{display:none;}
+  .hero{padding-top:100px;}
+}
+</style>
+</head>
+<body>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Nex<em>Drop</em></div>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Articles</a>
+    <a href="#">Downloads</a>
+    <a href="#">Contact</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">// EXCLUSIVE CONTENT GATEWAY</div>
+  <h1>
+    Unlock Your
+    <span class="l2">Exclusive</span>
+    <span class="l3">Link.</span>
+  </h1>
+  <p class="hero-sub">Enter your personal access code below. Each code unlocks a unique download — built just for you.</p>
+</section>
+
+<!-- ─── GATE CARD ─── -->
+<div class="gate-wrap">
+  <div class="gate-card">
+
+    <div class="gate-top">
+      <div class="gbadge"><div class="bdot"></div>ACCESS PORTAL</div>
+      <div class="sbar">
+        <div class="sb on"  id="sb1"></div>
+        <div class="sb"     id="sb2"></div>
+        <div class="sb"     id="sb3"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Enter code + Submit button ── -->
+    <div id="step1">
+      <div class="ptitle">Enter Your Code</div>
+      <div class="pdesc">Type your unique access code. Each code unlocks a different exclusive file.</div>
+      <input class="cinput" id="ci" type="text" placeholder="e.g.  NEXDROP-001" autocomplete="off" spellcheck="false">
+      <div class="errmsg" id="em">⚠ &nbsp;Invalid code — please check and try again.</div>
+      <button class="bigbtn v-submit" onclick="submitCode()">SUBMIT CODE</button>
+    </div>
+
+    <!-- ── STEP 2: Download button (after ad1) ── -->
+    <div class="panel" id="step2">
+      <div class="vpill">✓ &nbsp;CODE VERIFIED</div>
+      <div class="ptitle">Your Link is Ready</div>
+      <div class="pdesc">Click the button below to get your exclusive download link.</div>
+      <button class="bigbtn v-dl" onclick="goDownload()"><span>⬇ &nbsp; DOWNLOAD</span></button>
+    </div>
+
+    <!-- ── STEP 3: Final link (after ad2) ── -->
+    <div class="panel" id="step3">
+      <div class="vpill">✓ &nbsp;UNLOCKED</div>
+      <div class="ptitle">Here's Your File</div>
+      <div class="pdesc">Your exclusive content is ready. Tap below to open it.</div>
+      <a class="bigbtn v-final" id="finalBtn" href="#" target="_blank">▶ &nbsp; OPEN YOUR FILE</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="dline"></div>
+  <div class="dtxt">LATEST ARTICLES</div>
+  <div class="dline"></div>
+</div>
+
+<!-- BLOG -->
+<section class="blog">
+  <div class="bhead">
+    <div class="btitle">Fresh Drops</div>
+    <a class="ball" href="#">View All →</a>
+  </div>
+
+  <div class="pgrid">
+
+    <div class="pc feat" onclick="openPost('a1')">
+      <div class="fnum">01</div>
+      <div>
+        <div class="ctag tc">Deep Dive</div>
+        <div class="ct">Why Every Developer Should Learn System Design in 2026</div>
+        <div class="ce">System design isn't just for seniors anymore. With AI handling boilerplate, architects are more valuable than ever.</div>
+        <div class="cf"><div class="cd">MAR 12, 2026</div><div class="ca">→</div></div>
+      </div>
+    </div>
+
+    <div class="pc" onclick="openPost('a2')">
+      <div class="ctag tp">Opinion</div>
+      <div class="ct">The Real Cost of Moving Fast and Breaking Things</div>
+      <div class="ce">Technical debt isn't just code. It's trust, culture, and momentum — quietly eroding.</div>
+      <div class="cf"><div class="cd">MAR 9, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a3')">
+      <div class="ctag tg">Tutorial</div>
+      <div class="ct">Zero to API in 15 Minutes Using Hono + Bun</div>
+      <div class="ce">The new runtime stack making Express look ancient. Fast, minimal, typed.</div>
+      <div class="cf"><div class="cd">MAR 7, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a4')">
+      <div class="ctag ty">Tools</div>
+      <div class="ct">5 VS Code Extensions I Can't Work Without</div>
+      <div class="ce">Beyond Copilot — these extensions quietly 10x my daily workflow every single day.</div>
+      <div class="cf"><div class="cd">MAR 5, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a5')">
+      <div class="ctag tc">Security</div>
+      <div class="ct">OAuth 2.0 PKCE Flow — Explained Simply</div>
+      <div class="ce">Everyone copy-pastes auth code. Very few understand what's happening. Let's fix that.</div>
+      <div class="cf"><div class="cd">MAR 2, 2026</div><div class="ca">→</div></div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="logo">Nex<em>Drop</em></div>
+  <div class="fcopy">© 2026 NexDrop. All rights reserved.</div>
+</footer>
+
+<!-- BLOG MODAL -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <button class="mx" onclick="closePost()">✕</button>
+    <div id="mb"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════ -->
+<script>
+// ╔═══════════════════════════════════════════════════════╗
+// ║  ⚙️  APNE CODES AUR LINKS YAHAN EDIT KARO            ║
+// ║  Format:                                              ║
+// ║  "CODE" : {                                           ║
+// ║    ad1:   "pehli ad ka link",                         ║
+// ║    ad2:   "doosri ad ka link",                        ║
+// ║    final: "teri asli download/video link"             ║
+// ║  }                                                    ║
+// ╚═══════════════════════════════════════════════════════╝
+const CODES = {
+
+  "NEXDROP-001": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-001"
+  },
+
+  "NEXDROP-002": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-002"
+  },
+
+  "NEXDROP-003": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-003"
+  },
+
+  "VIP-ALPHA": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/vip-alpha-video"
+  },
+
+  "VIP-BETA": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/vip-beta-video"
+  }
+
+  // Naye codes add karo isi format mein ↑
+};
+// ═══════════════════════════════════════════════════════
+
+// sessionStorage keys
+const SK = 'nd_st';   // state: 0,1,2,3,4
+const CK = 'nd_cd';   // saved code
+
+let st = parseInt(sessionStorage.getItem(SK) || '0');
+let ac = sessionStorage.getItem(CK) || '';
+
+function save(s){ st = s; sessionStorage.setItem(SK, s); }
+
+function stepBar(active){
+  for(let i = 1; i <= 3; i++){
+    const e = document.getElementById('sb' + i);
+    e.className = 'sb' + (i < active ? ' done' : i === active ? ' on' : '');
+  }
+}
+
+function showStep(id){
+  ['step1','step2','step3'].forEach(s => {
+    const e = document.getElementById(s);
+    if(s === id){ e.style.display = 'block'; e.className = ''; }
+    else        { e.style.display = 'none';  e.className = 'panel'; }
+  });
+}
+
+// ── Restore state on page load (handles back button) ──
+window.addEventListener('load', () => {
+  if(st === 1){
+    // Returned from ad1 → show Download button
+    save(2);
+    showStep('step2'); stepBar(2);
+  }
+  else if(st === 3){
+    // Returned from ad2 → show final link
+    save(4);
+    applyFinal();
+    showStep('step3'); stepBar(3);
+  }
+  else if(st === 2){ showStep('step2'); stepBar(2); }
+  else if(st === 4){ applyFinal(); showStep('step3'); stepBar(3); }
+  else             { showStep('step1'); stepBar(1); }
+});
+
+function applyFinal(){
+  const cfg = CODES[ac];
+  if(cfg) document.getElementById('finalBtn').href = cfg.final;
+}
+
+// ── STEP 1: Submit code ──
+function submitCode(){
+  const raw = document.getElementById('ci').value.trim().toUpperCase();
+  const err = document.getElementById('em');
+
+  if(CODES[raw]){
+    err.style.display = 'none';
+    ac = raw;
+    sessionStorage.setItem(CK, raw);
+    save(1);
+    window.location.href = CODES[raw].ad1;   // → Ad 1
+  } else {
+    err.style.display = 'block';
+    document.getElementById('ci').focus();
+  }
+}
+
+// ── STEP 2: Download button clicked ──
+function goDownload(){
+  const cfg = CODES[ac];
+  if(!cfg) return;
+  save(3);
+  window.location.href = cfg.ad2;            // → Ad 2
+}
+
+// Enter key support
+document.getElementById('ci').addEventListener('keydown', e => {
+  if(e.key === 'Enter') submitCode();
+});
+
+// ════════════════════════════════════════
+// BLOG POSTS
+// ════════════════════════════════════════
+const posts = {
+  a1:{title:'Why Every Developer Should Learn System Design in 2026',meta:'DEEP DIVE · MAR 12, 2026 · 9 MIN READ',body:`<p>The landscape has shifted. AI writes functions now. It scaffolds CRUD apps, generates tests, and autocompletes logic. What it cannot do — at least not reliably — is design systems that scale, fail gracefully, and evolve over years.</p><h3>The New Ceiling</h3><p>Junior developers who would previously plateau at "writes working code" now get there faster. But the new ceiling is system thinking — understanding data flow, service boundaries, consistency trade-offs, and the unglamorous reality of distributed systems.</p><h3>Where to Start</h3><p>Begin with <code>CAP theorem</code>. Then read about consistent hashing, load balancing strategies, and database replication. Alex Xu's System Design Interview books remain the most practical starting point available.</p><h3>The Real Goal</h3><p>You're not learning system design to pass interviews. You're learning it so you can look at a growing product and ask the right questions before the architecture makes asking them moot.</p>`},
+  a2:{title:'The Real Cost of Moving Fast and Breaking Things',meta:'OPINION · MAR 9, 2026 · 5 MIN READ',body:`<p>The motto served its purpose. In 2010, shipping fast and learning from breakage made sense when the market was wide open and users were forgiving. That era is over.</p><h3>What Actually Breaks</h3><p>It's not the feature. Features can be rolled back. What breaks is the implicit contract your team has with quality. Once "ship and fix later" becomes the default, "later" never comes.</p><h3>Speed Without Breakage Is Possible</h3><p>Feature flags. Canary releases. Trunk-based development with strong CI. These are not slow — they are fast in a sustainable way. The teams shipping most reliably at scale are the ones who made quality a non-negotiable constraint, not a nice-to-have.</p>`},
+  a3:{title:'Zero to API in 15 Minutes Using Hono + Bun',meta:'TUTORIAL · MAR 7, 2026 · 6 MIN READ',body:`<p>Bun is a JavaScript runtime built for speed. Hono is a web framework so minimal it almost disappears. Together, they produce the fastest API development experience I've tried in years.</p><h3>Setup</h3><p>Install Bun from bun.sh. Create a new project with <code>bun init</code>. Add Hono with <code>bun add hono</code>. Running in under 60 seconds.</p><h3>Performance</h3><p>Benchmarks put Hono+Bun ahead of Express+Node by 5-10x on throughput for typical route patterns. Cold starts are dramatically faster — relevant for edge deployments.</p>`},
+  a4:{title:"5 VS Code Extensions I Can't Work Without",meta:'TOOLS · MAR 5, 2026 · 4 MIN READ',body:`<p>Everyone knows Copilot. These are the ones people don't talk about enough.</p><h3>Error Lens</h3><p>Displays errors and warnings inline right next to the problematic line. Sounds small until you use it for a day.</p><h3>GitLens</h3><p>Inline blame, file history, commit search — all without leaving the editor.</p><h3>REST Client</h3><p>Write HTTP requests in <code>.http</code> files and run them inline. Lives in your repo, versions with your code.</p><h3>Thunder Client</h3><p>Full GUI API client without leaving VS Code. Handles variables and environments cleanly.</p>`},
+  a5:{title:'OAuth 2.0 PKCE Flow — Explained Simply',meta:'SECURITY · MAR 2, 2026 · 7 MIN READ',body:`<p>PKCE (Proof Key for Code Exchange) is the recommended OAuth flow for SPAs and mobile apps. Most developers use it without understanding why.</p><h3>The Problem It Solves</h3><p>In the authorization code flow, an auth code is returned via redirect. If an attacker intercepts that redirect, they have your auth code and can exchange it for tokens.</p><h3>How PKCE Stops This</h3><p>Your app generates a random <code>code_verifier</code> and hashes it into a <code>code_challenge</code>. Only the original app can prove it owns the verifier — an interceptor cannot.</p>`}
+};
+
+function openPost(id){
+  const p = posts[id]; if(!p) return;
+  document.getElementById('mb').innerHTML = `<h2>${p.title}</h2><div class="mmeta">${p.meta}</div>${p.body}`;
+  document.getElementById('ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePost(){
+  document.getElementById('ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('ov').addEventListener('click', e => {
+  if(e.target.id === 'ov') closePost();
+});
+</script>
+</body>
+</html>
