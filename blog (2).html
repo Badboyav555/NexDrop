@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NexDrop — Exclusive Downloads</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050509;
+  --glass:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --bord2:rgba(255,255,255,0.13);
+  --text:#e4e4f0;
+  --muted:#6a6a88;
+  --cyan:#00f5ff;
+  --pink:#ff2d78;
+  --green:#00ff88;
+  --yellow:#ffe44d;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body {
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Outfit',sans-serif;
+  font-weight:300;
+  min-height:100vh;
+  overflow-x:hidden;
+  /* fluid base font */
+  font-size:clamp(14px, 3.8vw, 17px);
+}
+
+/* ── GRID BG ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,245,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,.022) 1px, transparent 1px);
+  background-size:50px 50px;
+  pointer-events:none;
+  z-index:0;
+  animation:gridMove 25s linear infinite;
+}
+@keyframes gridMove{from{background-position:0 0;}to{background-position:50px 50px;}}
+
+/* ── ORBS ── */
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.o1{width:min(480px,90vw);height:min(480px,90vw);background:rgba(0,245,255,.06);top:-80px;left:-80px;}
+.o2{width:min(380px,80vw);height:min(380px,80vw);background:rgba(255,45,120,.06);bottom:-60px;right:-60px;}
+.o3{width:min(260px,70vw);height:min(260px,70vw);background:rgba(0,255,136,.04);top:50%;left:50%;transform:translate(-50%,-50%);}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:56px;
+  padding:0 clamp(1rem,5vw,2.5rem);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(5,5,9,.82);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.1rem,4vw,1.4rem);letter-spacing:-.5px;white-space:nowrap;}
+.logo em{font-style:normal;color:var(--cyan);text-shadow:0 0 18px rgba(0,245,255,.5);}
+nav{display:flex;gap:clamp(.8rem,3vw,2rem);}
+nav a{color:var(--muted);text-decoration:none;font-size:clamp(.7rem,2.5vw,.82rem);transition:color .2s;}
+nav a:hover{color:var(--cyan);}
+/* hide nav on very small screens */
+@media(max-width:420px){ nav{display:none;} }
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;
+  padding: clamp(90px,22vw,140px) clamp(1rem,6vw,2.5rem) clamp(2rem,8vw,4rem);
+  max-width:1100px;
+  margin:0 auto;
+}
+.eyebrow{
+  font-family:'Syne Mono',monospace;
+  font-size:clamp(.55rem,2vw,.68rem);
+  color:var(--cyan);
+  letter-spacing:clamp(2px,1vw,4px);
+  text-transform:uppercase;
+  margin-bottom:clamp(.8rem,3vw,1.4rem);
+  opacity:0;animation:rise .7s .1s ease forwards;
+}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.4rem,10vw,7rem);
+  line-height:.93;
+  letter-spacing:clamp(-2px,-0.4vw,-3px);
+  opacity:0;animation:rise .7s .2s ease forwards;
+  word-break:keep-all;
+}
+.hero h1 .l2{display:block;-webkit-text-stroke:1px rgba(255,255,255,.22);color:transparent;}
+.hero h1 .l3{display:block;color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,.4);}
+.hero-sub{
+  margin-top:clamp(1rem,4vw,1.8rem);
+  max-width:min(440px,100%);
+  color:var(--muted);
+  font-size:clamp(.82rem,3vw,.95rem);
+  line-height:1.75;
+  opacity:0;animation:rise .7s .3s ease forwards;
+}
+@keyframes rise{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── GATE CARD ── */
+.gate-wrap{
+  position:relative;z-index:1;
+  width:min(520px,100%);
+  margin:0 auto clamp(3rem,10vw,5rem);
+  padding:0 clamp(1rem,5vw,1.5rem);
+  opacity:0;animation:rise .7s .4s ease forwards;
+}
+.gate-card{
+  background:var(--glass);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+  border:1px solid var(--bord2);
+  border-radius:clamp(14px,4vw,22px);
+  padding:clamp(1.4rem,6vw,2.8rem) clamp(1.2rem,5vw,2.5rem);
+  position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px var(--border),0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* corner brackets */
+.gate-card::before,.gate-card::after{
+  content:'';position:absolute;
+  width:clamp(32px,8vw,52px);height:clamp(32px,8vw,52px);
+  border-color:rgba(0,245,255,.33);border-style:solid;
+}
+.gate-card::before{top:12px;left:12px;border-width:2px 0 0 2px;border-radius:3px 0 0 0;}
+.gate-card::after{bottom:12px;right:12px;border-width:0 2px 2px 0;border-radius:0 0 3px 0;}
+
+/* top row */
+.gate-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(1.2rem,4vw,2rem);flex-wrap:wrap;gap:.6rem;}
+.gbadge{display:flex;align-items:center;gap:7px;font-family:'Syne Mono',monospace;font-size:clamp(.55rem,2vw,.62rem);letter-spacing:2px;color:var(--cyan);text-transform:uppercase;}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 7px var(--cyan);animation:blink 1.6s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sbar{display:flex;gap:5px;}
+.sb{height:3px;width:clamp(20px,6vw,34px);border-radius:2px;background:var(--border);transition:all .4s;}
+.sb.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+.sb.done{background:var(--green);}
+
+/* panel text */
+.ptitle{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(1.1rem,4.5vw,1.4rem);letter-spacing:-.3px;margin-bottom:.5rem;}
+.pdesc{font-size:clamp(.78rem,3vw,.87rem);color:var(--muted);line-height:1.65;margin-bottom:clamp(1.2rem,5vw,2rem);}
+
+/* code input */
+.cinput{
+  width:100%;
+  background:rgba(0,0,0,.45);
+  border:1px solid var(--bord2);
+  border-radius:10px;
+  outline:none;
+  padding:clamp(12px,3.5vw,16px) clamp(14px,4vw,20px);
+  color:var(--text);
+  font-family:'Syne Mono',monospace;
+  font-size:clamp(.9rem,3.5vw,1.05rem);
+  letter-spacing:clamp(2px,1vw,4px);
+  caret-color:var(--cyan);
+  transition:border-color .3s,box-shadow .3s;
+  margin-bottom:clamp(10px,3vw,14px);
+  display:block;
+}
+.cinput::placeholder{color:var(--muted);font-size:clamp(.7rem,2.5vw,.78rem);letter-spacing:1px;}
+.cinput:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,.09);}
+
+.errmsg{display:none;font-family:'Syne Mono',monospace;font-size:clamp(.62rem,2.5vw,.7rem);color:var(--pink);letter-spacing:1px;margin-bottom:clamp(10px,3vw,14px);}
+
+/* ── BIG BUTTON ── */
+.bigbtn{
+  display:block;width:100%;
+  padding:clamp(14px,4vw,18px) clamp(16px,5vw,24px);
+  border-radius:12px;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(.85rem,3.5vw,1rem);
+  letter-spacing:1.5px;
+  text-align:center;text-decoration:none;
+  transition:all .3s;position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+/* cyan = submit */
+.bigbtn.v-submit{background:var(--cyan);color:#050509;}
+.bigbtn.v-submit:hover,.bigbtn.v-submit:active{background:#fff;box-shadow:0 8px 30px rgba(0,245,255,.28);transform:translateY(-1px);}
+/* pink outline = download */
+.bigbtn.v-dl{background:transparent;color:var(--pink);border:1.5px solid var(--pink);}
+.bigbtn.v-dl::after{content:'';position:absolute;inset:0;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:0;}
+.bigbtn.v-dl:hover::after,.bigbtn.v-dl:active::after{transform:scaleX(1);}
+.bigbtn.v-dl:hover,.bigbtn.v-dl:active{color:#fff;box-shadow:0 8px 28px rgba(255,45,120,.25);transform:translateY(-1px);}
+.bigbtn.v-dl span{position:relative;z-index:1;}
+/* green = final */
+.bigbtn.v-final{background:linear-gradient(135deg,var(--green),#00c06a);color:#050509;}
+.bigbtn.v-final:hover,.bigbtn.v-final:active{transform:translateY(-1px);box-shadow:0 10px 35px rgba(0,255,136,.28);}
+
+/* panels hidden by default */
+.panel{display:none;}
+
+/* verified pill */
+.vpill{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);
+  border-radius:100px;padding:5px 12px;
+  font-family:'Syne Mono',monospace;font-size:clamp(.55rem,2vw,.62rem);
+  color:var(--green);letter-spacing:1.5px;margin-bottom:clamp(1rem,3vw,1.4rem);
+}
+
+/* ── DIVIDER ── */
+.divider{
+  position:relative;z-index:1;
+  max-width:1100px;margin:0 auto clamp(2rem,6vw,3rem);
+  padding:0 clamp(1rem,5vw,2.5rem);
+  display:flex;align-items:center;gap:1.2rem;
+}
+.dline{flex:1;height:1px;background:var(--border);}
+.dtxt{font-family:'Syne Mono',monospace;font-size:clamp(.55rem,2vw,.62rem);color:var(--muted);letter-spacing:3px;white-space:nowrap;}
+
+/* ── BLOG ── */
+.blog{
+  position:relative;z-index:1;
+  max-width:1100px;margin:0 auto;
+  padding:0 clamp(1rem,5vw,2.5rem) clamp(3rem,10vw,5rem);
+}
+.bhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:clamp(1.5rem,5vw,2.5rem);gap:1rem;}
+.btitle{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.4rem,6vw,2rem);letter-spacing:-1px;}
+.ball{font-family:'Syne Mono',monospace;font-size:clamp(.62rem,2.5vw,.7rem);color:var(--cyan);text-decoration:none;letter-spacing:1px;white-space:nowrap;}
+.ball:hover{text-shadow:0 0 10px var(--cyan);}
+
+/* GRID: 1 col mobile → 2 col tablet → 3 col desktop */
+.pgrid{
+  display:grid;
+  gap:clamp(10px,2.5vw,14px);
+  grid-template-columns:1fr;
+}
+@media(min-width:600px){
+  .pgrid{grid-template-columns:1fr 1fr;}
+}
+@media(min-width:900px){
+  .pgrid{grid-template-columns:1.4fr 1fr 1fr;grid-template-rows:auto auto;}
+  .pc.feat{grid-row:span 2;}
+}
+
+.pc{
+  background:var(--glass);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border);
+  border-radius:clamp(12px,3vw,16px);
+  padding:clamp(1.2rem,4vw,2rem);
+  cursor:pointer;transition:all .3s;
+  position:relative;overflow:hidden;
+}
+.pc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,245,255,.03),transparent);opacity:0;transition:opacity .3s;}
+.pc:hover,.pc:active{border-color:var(--bord2);transform:translateY(-2px);box-shadow:0 16px 50px rgba(0,0,0,.4);}
+.pc:hover::before,.pc:active::before{opacity:1;}
+
+.pc.feat{
+  display:flex;flex-direction:column;justify-content:flex-end;
+  min-height:clamp(200px,50vw,370px);
+}
+.feat .fnum{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(3.5rem,12vw,5.5rem);
+  color:rgba(0,245,255,.06);
+  position:absolute;top:.6rem;right:1rem;
+  line-height:1;user-select:none;
+}
+
+.ctag{
+  display:inline-block;
+  font-family:'Syne Mono',monospace;
+  font-size:clamp(.52rem,1.8vw,.58rem);
+  letter-spacing:2px;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;
+  margin-bottom:clamp(.6rem,2vw,.9rem);
+}
+.tc{background:rgba(0,245,255,.09);color:var(--cyan);border:1px solid rgba(0,245,255,.18);}
+.tp{background:rgba(255,45,120,.09);color:var(--pink);border:1px solid rgba(255,45,120,.18);}
+.tg{background:rgba(0,255,136,.09);color:var(--green);border:1px solid rgba(0,255,136,.18);}
+.ty{background:rgba(255,228,77,.09);color:var(--yellow);border:1px solid rgba(255,228,77,.18);}
+
+.ct{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(.9rem,3.5vw,1.1rem);line-height:1.22;letter-spacing:-.2px;margin-bottom:.6rem;}
+.feat .ct{font-size:clamp(1.1rem,4vw,1.45rem);}
+.ce{font-size:clamp(.75rem,2.8vw,.83rem);color:var(--muted);line-height:1.6;margin-bottom:clamp(.8rem,3vw,1.2rem);}
+.cf{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.cd{font-family:'Syne Mono',monospace;font-size:clamp(.55rem,2vw,.62rem);color:var(--muted);letter-spacing:1px;}
+.ca{
+  width:26px;height:26px;border-radius:50%;
+  border:1px solid var(--bord2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;color:var(--muted);
+  transition:all .2s;flex-shrink:0;
+}
+.pc:hover .ca,.pc:active .ca{border-color:var(--cyan);color:var(--cyan);transform:translateX(2px);}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:1;
+  border-top:1px solid var(--border);
+  padding:clamp(1.2rem,4vw,2rem) clamp(1rem,5vw,2.5rem);
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:1100px;margin:0 auto;
+  flex-wrap:wrap;gap:.8rem;
+}
+.fcopy{font-size:clamp(.7rem,2.5vw,.78rem);color:var(--muted);}
+
+/* ── MODAL ── */
+.ov{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  z-index:300;
+  display:none;align-items:flex-end;justify-content:center;
+  padding:0;
+}
+.ov.open{display:flex;}
+@media(min-width:600px){
+  .ov{align-items:center;padding:2rem;}
+}
+.modal{
+  background:#0d0d16;
+  border:1px solid var(--bord2);
+  border-radius:20px 20px 0 0;
+  width:100%;
+  max-height:88vh;
+  overflow-y:auto;
+  padding:clamp(1.5rem,5vw,3rem);
+  position:relative;
+  animation:slideUp .35s ease;
+  box-shadow:0 -20px 80px rgba(0,0,0,.6);
+}
+@media(min-width:600px){
+  .modal{border-radius:20px;max-width:680px;animation:rise .3s ease;box-shadow:0 40px 100px rgba(0,0,0,.7);}
+}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.mx{
+  position:absolute;top:1rem;right:1rem;
+  background:var(--glass);border:1px solid var(--border);
+  width:32px;height:32px;border-radius:50%;
+  cursor:pointer;color:var(--muted);font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.mx:hover{border-color:var(--pink);color:var(--pink);}
+.modal h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.2rem,5vw,1.75rem);letter-spacing:-.5px;margin-bottom:.4rem;padding-right:2.5rem;}
+.mmeta{font-family:'Syne Mono',monospace;font-size:clamp(.58rem,2vw,.62rem);color:var(--muted);letter-spacing:1.5px;margin-bottom:1.8rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
+.modal p{line-height:1.8;color:#9090b0;margin-bottom:1.2rem;font-size:clamp(.82rem,3vw,.93rem);}
+.modal h3{font-family:'Syne',sans-serif;font-size:clamp(.95rem,3.5vw,1.05rem);font-weight:700;margin:1.8rem 0 .6rem;color:var(--cyan);}
+.modal code{font-family:'Syne Mono',monospace;background:rgba(0,245,255,.08);padding:2px 6px;border-radius:4px;color:var(--cyan);font-size:clamp(.75rem,2.5vw,.83rem);}
+
+/* modal drag handle on mobile */
+.drag-handle{
+  display:none;
+  width:40px;height:4px;
+  background:var(--border);border-radius:2px;
+  margin:0 auto clamp(1rem,4vw,1.5rem);
+}
+@media(max-width:599px){.drag-handle{display:block;}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Nex<em>Drop</em></div>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Articles</a>
+    <a href="#">Downloads</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">// EXCLUSIVE CONTENT GATEWAY</div>
+  <h1>
+    Unlock Your
+    <span class="l2">Exclusive</span>
+    <span class="l3">Link.</span>
+  </h1>
+  <p class="hero-sub">Enter your personal access code. Each code unlocks a unique download — built just for you.</p>
+</section>
+
+<!-- ── GATE CARD ── -->
+<div class="gate-wrap">
+  <div class="gate-card">
+
+    <div class="gate-top">
+      <div class="gbadge"><div class="bdot"></div>ACCESS PORTAL</div>
+      <div class="sbar">
+        <div class="sb on"  id="sb1"></div>
+        <div class="sb"     id="sb2"></div>
+        <div class="sb"     id="sb3"></div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Code input + Submit -->
+    <div id="step1">
+      <div class="ptitle">Enter Your Code</div>
+      <div class="pdesc">Type your unique access code below. Each code unlocks a different exclusive file.</div>
+      <input class="cinput" id="ci" type="text" placeholder="e.g.  NEXDROP-001" autocomplete="off" spellcheck="false" inputmode="text">
+      <div class="errmsg" id="em">⚠ &nbsp;Invalid code — please check and try again.</div>
+      <button class="bigbtn v-submit" onclick="submitCode()">SUBMIT CODE</button>
+    </div>
+
+    <!-- STEP 2: Download button (shown after returning from ad1) -->
+    <div class="panel" id="step2">
+      <div class="vpill">✓ &nbsp;CODE VERIFIED</div>
+      <div class="ptitle">Your Link is Ready</div>
+      <div class="pdesc">Click the button below to get your exclusive download link.</div>
+      <button class="bigbtn v-dl" onclick="goDownload()"><span>⬇ &nbsp; DOWNLOAD</span></button>
+    </div>
+
+    <!-- STEP 3: Final link (shown after returning from ad2) -->
+    <div class="panel" id="step3">
+      <div class="vpill">✓ &nbsp;UNLOCKED</div>
+      <div class="ptitle">Here's Your File</div>
+      <div class="pdesc">Your exclusive content is ready. Tap below to open it.</div>
+      <a class="bigbtn v-final" id="finalBtn" href="#" target="_blank">▶ &nbsp; OPEN YOUR FILE</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="dline"></div>
+  <div class="dtxt">LATEST ARTICLES</div>
+  <div class="dline"></div>
+</div>
+
+<!-- BLOG -->
+<section class="blog">
+  <div class="bhead">
+    <div class="btitle">Fresh Drops</div>
+    <a class="ball" href="#">View All →</a>
+  </div>
+
+  <div class="pgrid">
+
+    <div class="pc feat" onclick="openPost('a1')">
+      <div class="fnum">01</div>
+      <div>
+        <div class="ctag tc">Deep Dive</div>
+        <div class="ct">Why Every Developer Should Learn System Design in 2026</div>
+        <div class="ce">System design isn't just for seniors. With AI handling boilerplate, architects are more valuable than ever.</div>
+        <div class="cf"><div class="cd">MAR 12, 2026</div><div class="ca">→</div></div>
+      </div>
+    </div>
+
+    <div class="pc" onclick="openPost('a2')">
+      <div class="ctag tp">Opinion</div>
+      <div class="ct">The Real Cost of Moving Fast and Breaking Things</div>
+      <div class="ce">Technical debt isn't just code. It's trust and momentum — quietly eroding.</div>
+      <div class="cf"><div class="cd">MAR 9, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a3')">
+      <div class="ctag tg">Tutorial</div>
+      <div class="ct">Zero to API in 15 Minutes Using Hono + Bun</div>
+      <div class="ce">The runtime stack making Express look ancient. Fast, minimal, fully typed.</div>
+      <div class="cf"><div class="cd">MAR 7, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a4')">
+      <div class="ctag ty">Tools</div>
+      <div class="ct">5 VS Code Extensions I Can't Work Without</div>
+      <div class="ce">Beyond Copilot — these quietly 10x my daily workflow every single day.</div>
+      <div class="cf"><div class="cd">MAR 5, 2026</div><div class="ca">→</div></div>
+    </div>
+
+    <div class="pc" onclick="openPost('a5')">
+      <div class="ctag tc">Security</div>
+      <div class="ct">OAuth 2.0 PKCE Flow — Explained Simply</div>
+      <div class="ce">Everyone copy-pastes auth code. Very few understand what's happening. Let's fix that.</div>
+      <div class="cf"><div class="cd">MAR 2, 2026</div><div class="ca">→</div></div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="logo">Nex<em>Drop</em></div>
+  <div class="fcopy">© 2026 NexDrop. All rights reserved.</div>
+</footer>
+
+<!-- BLOG MODAL -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <div class="drag-handle"></div>
+    <button class="mx" onclick="closePost()">✕</button>
+    <div id="mb"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<script>
+// ╔═══════════════════════════════════════════════════════╗
+// ║  ⚙️  APNE CODES AUR LINKS YAHAN EDIT KARO            ║
+// ╚═══════════════════════════════════════════════════════╝
+const CODES = {
+
+  "NEXDROP-001": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-001"
+  },
+
+  "NEXDROP-002": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-002"
+  },
+
+  "NEXDROP-003": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/file-003"
+  },
+
+  "VIP-ALPHA": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/vip-alpha-video"
+  },
+
+  "VIP-BETA": {
+    ad1:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    ad2:   "https://www.profitableratecpm.com/z1xk5fxr?key=b79bdc98c5e25a29a8b74bf87fdd5b69",
+    final: "https://example.com/vip-beta-video"
+  }
+
+  // Aur codes aise add karo:
+  // "MERA-CODE": { ad1:"...", ad2:"...", final:"..." },
+};
+// ════════════════════════════════════════════════════════
+
+const SK='nd_st', CK='nd_cd';
+let st = parseInt(sessionStorage.getItem(SK)||'0');
+let ac = sessionStorage.getItem(CK)||'';
+
+function save(s){ st=s; sessionStorage.setItem(SK,s); }
+
+function stepBar(active){
+  for(let i=1;i<=3;i++){
+    const e=document.getElementById('sb'+i);
+    e.className='sb'+(i<active?' done':i===active?' on':'');
+  }
+}
+
+function showStep(id){
+  ['step1','step2','step3'].forEach(s=>{
+    const e=document.getElementById(s);
+    if(s===id){e.style.display='block';e.className='';}
+    else{e.style.display='none';e.className='panel';}
+  });
+}
+
+function applyFinal(){
+  const c=CODES[ac];
+  if(c) document.getElementById('finalBtn').href=c.final;
+}
+
+// Restore state on load (handles back button)
+window.addEventListener('load',()=>{
+  if(st===1){       save(2); showStep('step2'); stepBar(2); }
+  else if(st===3){  save(4); applyFinal(); showStep('step3'); stepBar(3); }
+  else if(st===2){  showStep('step2'); stepBar(2); }
+  else if(st===4){  applyFinal(); showStep('step3'); stepBar(3); }
+  else{             showStep('step1'); stepBar(1); }
+});
+
+function submitCode(){
+  const raw=document.getElementById('ci').value.trim().toUpperCase();
+  const err=document.getElementById('em');
+  if(CODES[raw]){
+    err.style.display='none';
+    ac=raw; sessionStorage.setItem(CK,raw);
+    save(1);
+    window.location.href=CODES[raw].ad1;
+  } else {
+    err.style.display='block';
+    document.getElementById('ci').focus();
+  }
+}
+
+function goDownload(){
+  const c=CODES[ac]; if(!c) return;
+  save(3);
+  window.location.href=c.ad2;
+}
+
+document.getElementById('ci').addEventListener('keydown',e=>{
+  if(e.key==='Enter') submitCode();
+});
+
+// ── Blog posts ──
+const posts={
+  a1:{title:'Why Every Developer Should Learn System Design in 2026',meta:'DEEP DIVE · MAR 12, 2026 · 9 MIN READ',body:`<p>The landscape has shifted. AI writes functions now. It scaffolds CRUD apps, generates tests, and autocompletes logic. What it cannot do — at least not reliably — is design systems that scale, fail gracefully, and evolve over years.</p><h3>The New Ceiling</h3><p>Junior developers who would previously plateau at "writes working code" now get there faster. But the new ceiling is system thinking — understanding data flow, service boundaries, consistency trade-offs, and the unglamorous reality of distributed systems.</p><h3>Where to Start</h3><p>Begin with <code>CAP theorem</code>. Then read about consistent hashing, load balancing strategies, and database replication. Alex Xu's System Design Interview books remain the most practical starting point available.</p><h3>The Real Goal</h3><p>You're not learning system design to pass interviews. You're learning it so you can look at a growing product and ask the right questions before the architecture makes asking them moot.</p>`},
+  a2:{title:'The Real Cost of Moving Fast and Breaking Things',meta:'OPINION · MAR 9, 2026 · 5 MIN READ',body:`<p>The motto served its purpose in 2010. Shipping fast and learning from breakage made sense when the market was open and users were forgiving. That era is over.</p><h3>What Actually Breaks</h3><p>It's not the feature. Features can be rolled back. What breaks is the implicit contract your team has with quality. Once "ship and fix later" becomes the default, "later" never comes.</p><h3>Speed Without Breakage</h3><p>Feature flags. Canary releases. Trunk-based development with strong CI. These are not slow — they are fast in a sustainable way.</p>`},
+  a3:{title:'Zero to API in 15 Minutes Using Hono + Bun',meta:'TUTORIAL · MAR 7, 2026 · 6 MIN READ',body:`<p>Bun is a JavaScript runtime built for speed. Hono is a web framework so minimal it almost disappears. Together, they produce the fastest API development experience in years.</p><h3>Setup</h3><p>Install Bun from bun.sh. Create a project with <code>bun init</code>. Add Hono with <code>bun add hono</code>. Running in under 60 seconds.</p><h3>Performance</h3><p>Benchmarks put Hono+Bun ahead of Express+Node by 5-10x on throughput. Cold starts are dramatically faster — ideal for edge deployments.</p>`},
+  a4:{title:"5 VS Code Extensions I Can't Work Without",meta:'TOOLS · MAR 5, 2026 · 4 MIN READ',body:`<p>Everyone knows Copilot. These are the ones people don't talk about enough.</p><h3>Error Lens</h3><p>Displays errors inline right next to the problematic line. Sounds small until you use it for a day.</p><h3>GitLens</h3><p>Inline blame, file history, commit search — all without leaving the editor.</p><h3>REST Client</h3><p>Write HTTP requests in <code>.http</code> files and run them inline. Lives in your repo, versions with your code.</p><h3>Thunder Client</h3><p>Full GUI API client inside VS Code. Handles variables and environments cleanly.</p>`},
+  a5:{title:'OAuth 2.0 PKCE Flow — Explained Simply',meta:'SECURITY · MAR 2, 2026 · 7 MIN READ',body:`<p>PKCE is the recommended OAuth flow for SPAs and mobile apps. Most developers use it without understanding why.</p><h3>The Problem</h3><p>In the authorization code flow, an auth code is returned via redirect. If intercepted, it can be exchanged for tokens — without PKCE.</p><h3>How PKCE Helps</h3><p>Your app generates a <code>code_verifier</code> and hashes it into a <code>code_challenge</code>. Only the original app can prove ownership. An interceptor cannot.</p>`}
+};
+
+function openPost(id){
+  const p=posts[id]; if(!p) return;
+  document.getElementById('mb').innerHTML=`<h2>${p.title}</h2><div class="mmeta">${p.meta}</div>${p.body}`;
+  document.getElementById('ov').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closePost(){
+  document.getElementById('ov').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('ov').addEventListener('click',e=>{
+  if(e.target.id==='ov') closePost();
+});
+</script>
+</body>
+</html>
